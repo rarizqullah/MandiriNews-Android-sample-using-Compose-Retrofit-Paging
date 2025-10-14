@@ -17,7 +17,7 @@ class HeadlinesPagingSource(
         "sports"        -> "olahraga OR sepak bola OR badminton OR basket"
         "health"        -> "kesehatan OR rumah sakit OR penyakit OR vaksin"
         "science"       -> "sains OR penelitian OR ilmiah"
-        else            -> "indonesia"  // default supaya selalu ada hasil
+        else            -> "indonesia"
     }
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Article> {

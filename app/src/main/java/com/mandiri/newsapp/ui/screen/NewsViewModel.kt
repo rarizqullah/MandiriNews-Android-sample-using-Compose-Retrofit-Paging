@@ -14,7 +14,7 @@ class NewsViewModel : ViewModel() {
 
     private val api = NetworkModule.api
 
-    // Kategori headlines
+
     private val _headlineCategory = MutableStateFlow<String?>(null)
     val headlineCategory = _headlineCategory.asStateFlow()
 
@@ -31,7 +31,7 @@ class NewsViewModel : ViewModel() {
 
     fun setHeadlineCategory(category: String?) { _headlineCategory.value = category }
 
-    // All News (tetap everything + query bebas)
+
     private val _query = MutableStateFlow("indonesia")
     val everythingPager = _query
         .debounce(250)
