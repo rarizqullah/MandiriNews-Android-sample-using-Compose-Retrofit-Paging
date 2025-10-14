@@ -69,7 +69,7 @@ fun ArticleCard(
                 )
             }
 
-            // Deskripsi singkat + source
+
             Column(Modifier.padding(12.dp)) {
                 if (!article.description.isNullOrBlank()) {
                     Text(
