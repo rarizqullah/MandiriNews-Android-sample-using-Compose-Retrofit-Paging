@@ -4,42 +4,68 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.graphics.Color
 
-private val Yellow = Color(0xFFFFC400)
-private val YellowContainer = Color(0xFFFFF3C4)
-
+/* ============ LIGHT: Putih Hangat + Abu-abu Elegan ============ */
 private val LightColors = lightColorScheme(
-    primary = Yellow,
-    onPrimary = Color(0xFF1E1E1E),
-    primaryContainer = YellowContainer,
+    primary            = MandiriYellow,
+    onPrimary          = Color(0xFF1E1E1E),
+    primaryContainer   = MandiriYellowContainer,
     onPrimaryContainer = Color(0xFF201A00),
 
-    secondary = Color(0xFF5F5F5F),
-    onSecondary = Color.White,
+    surface            = WarmWhite,         // latar utama hangat
+    onSurface          = OnLight,           // teks utama gelap
+    surfaceVariant     = Gray80,            // kartu/sheet subtle
+    onSurfaceVariant   = Gray60,            // teks sekunder
 
-    surface = Color(0xFFF7F7FA),
-    onSurface = Color(0xFF1C1C1C),
-    surfaceVariant = Color(0xFFEDEFF3),
-    onSurfaceVariant = Color(0xFF51565E),
+    background         = WarmWhiteHigh,     // window background
+    outline            = WarmOutline,       // border, divider
+    outlineVariant     = WarmOutline.copy(alpha = 0.8f),
 
-    outline = Color(0xFFD7DAE0),
-    outlineVariant = Color(0xFFE1E4EA)
+    secondary          = Gray20,
+    onSecondary        = Color.White,
+
+    error              = Color(0xFFB3261E),
+    onError            = Color.White
 )
 
+/* ============ DARK: Hitam Mewah + Abu-abu Netral ============ */
 private val DarkColors = darkColorScheme(
-    primary = Yellow,
-    onPrimary = Color.Black
+    primary            = MandiriYellow,
+    onPrimary          = Color.Black,
+    primaryContainer   = Color(0xFF3B2D00),
+    onPrimaryContainer = MandiriYellowContainer,
+
+    surface            = RichBlack,         // hitam mewah
+    onSurface          = OnDark,            // teks lembut (bukan putih murni)
+    surfaceVariant     = RichBlackHigh,     // elevated surfaces
+    onSurfaceVariant   = OnDark.copy(alpha = 0.7f),
+
+    background         = RichBlack,
+    outline            = RichOutline,
+    outlineVariant     = RichOutline.copy(alpha = 0.7f),
+
+    secondary          = Color(0xFFCACACA),
+    onSecondary        = Color.Black,
+
+    error              = Color(0xFFF2B8B5),
+    onError            = Color(0xFF601410)
 )
 
+/**
+ * Pakai tema sesuai sistem. Komponen “glass” (nav bar) akan otomatis
+ * mengambil warna dari MaterialTheme.colorScheme.surface + outline, jadi
+ * tampil bening hangat di Light, dan smoky di Dark.
+ */
 @Composable
 fun NewsappTheme(
-    darkTheme: Boolean = false,
+    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
     MaterialTheme(
         colorScheme = if (darkTheme) DarkColors else LightColors,
-        typography = AppTypography, // biarkan sesuai punyamu
-        content = content
+        typography  = AppTypography,
+        content     = content
     )
 }
