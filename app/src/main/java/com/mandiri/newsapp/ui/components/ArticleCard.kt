@@ -26,10 +26,11 @@ fun ArticleCard(
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val link = article.url
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick(article.url) },
+            .clickable(enabled = !link.isNullOrBlank()) { link?.let(onClick) },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -58,7 +59,7 @@ fun ArticleCard(
                         )
                 )
                 Text(
-                    text = article.title,
+                    text = article.title.orEmpty().ifBlank { "(Untitled)" },
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
                     maxLines = 2,
@@ -71,16 +72,17 @@ fun ArticleCard(
 
 
             Column(Modifier.padding(12.dp)) {
-                if (!article.description.isNullOrBlank()) {
+                val desc = article.description
+                if (!desc.isNullOrBlank()) {
                     Text(
-                        text = article.description!!,
+                        text = desc,
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 3,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
                 }
-                val source = article.source?.name ?: ""
+                val source = article.source?.name.orEmpty()
                 if (source.isNotBlank()) {
                     Text(
                         text = source,

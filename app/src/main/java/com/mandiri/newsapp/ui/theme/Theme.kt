@@ -1,74 +1,45 @@
 package com.mandiri.newsapp.ui.theme
 
-import android.app.Activity
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
+import androidx.compose.ui.graphics.Color
 
+private val Yellow = Color(0xFFFFC400)
+private val YellowContainer = Color(0xFFFFF3C4)
 
 private val LightColors = lightColorScheme(
-    primary = Black,
-    onPrimary = White,
-    primaryContainer = Black,
-    onPrimaryContainer = White,
+    primary = Yellow,
+    onPrimary = Color(0xFF1E1E1E),
+    primaryContainer = YellowContainer,
+    onPrimaryContainer = Color(0xFF201A00),
 
-    secondary = Black,
-    onSecondary = White,
+    secondary = Color(0xFF5F5F5F),
+    onSecondary = Color.White,
 
-    background = WarmWhite,
-    onBackground = Black,
-    surface = WarmWhite,
-    onSurface = Black,
-    outline = WarmOutline
+    surface = Color(0xFFF7F7FA),
+    onSurface = Color(0xFF1C1C1C),
+    surfaceVariant = Color(0xFFEDEFF3),
+    onSurfaceVariant = Color(0xFF51565E),
+
+    outline = Color(0xFFD7DAE0),
+    outlineVariant = Color(0xFFE1E4EA)
 )
-
 
 private val DarkColors = darkColorScheme(
-    primary = White,
-    onPrimary = Black,
-    primaryContainer = White,
-    onPrimaryContainer = Black,
-
-    secondary = White,
-    onSecondary = Black,
-
-    background = Black,
-    onBackground = White,
-    surface = Black,
-    onSurface = White,
-    outline = Gray20
+    primary = Yellow,
+    onPrimary = Color.Black
 )
-
 
 @Composable
 fun NewsappTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    forceDark: Boolean? = null,
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val useDark = forceDark ?: darkTheme
-    val colors = if (useDark) DarkColors else LightColors
-
-    // Sinkronkan status bar agar kontras
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = colors.background.toArgb()
-            WindowCompat.getInsetsController(window, view)
-                .isAppearanceLightStatusBars = !useDark
-        }
-    }
-
     MaterialTheme(
-        colorScheme = colors,
-        typography = AppTypography,
+        colorScheme = if (darkTheme) DarkColors else LightColors,
+        typography = AppTypography, // biarkan sesuai punyamu
         content = content
     )
 }

@@ -18,8 +18,15 @@ class EverythingPagingSource(
 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Article> = try {
         val page = params.key ?: 1
-        val resp = api.everything(query = query, page = page, pageSize = 20)
-        val data = resp.articles ?: emptyList()
+        val resp = api.everything(
+            query = query,
+            sortBy = "publishedAt",
+            page = page,
+            pageSize = params.loadSize.coerceAtMost(20),
+            language = "id"
+        )
+        val data = (resp.articles ?: emptyList())
+            .filter { !it.url.isNullOrBlank() }   // hanya item yang bisa dibuka
         LoadResult.Page(
             data = data,
             prevKey = if (page == 1) null else page - 1,
