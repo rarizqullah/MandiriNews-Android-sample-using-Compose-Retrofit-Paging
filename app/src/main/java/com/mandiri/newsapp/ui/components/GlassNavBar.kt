@@ -27,13 +27,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 
-/**
- * Bottom navigation transparan ala "liquid glass".
- * 3 tombol: Home, Saved, Settings.
- *
- * Catatan penting:
- * - Kaca (blur) digambar pada UNDERLAY (Box matchParentSize) sehingga ikon tidak ikut blur.
- */
 @Composable
 fun GlassNavigationBar(
     current: Int,
@@ -54,13 +47,12 @@ fun GlassNavigationBar(
             .height(height)
             .clip(shape)
     ) {
-        // === UNDERLAY: kaca (blur + warna bening + border + glare) ===
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .zIndex(0f)
                 .clip(shape)
-                .blur(16.dp) // blur hanya pada underlay ini
+                .blur(16.dp)
                 .background(
                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.55f),
                     shape = shape
@@ -71,7 +63,6 @@ fun GlassNavigationBar(
                     shape = shape
                 )
                 .drawBehind {
-                    // glare lembut di bagian atas
                     drawRoundRect(
                         brush = Brush.verticalGradient(
                             0f to Color.White.copy(alpha = 0.22f),
@@ -82,8 +73,6 @@ fun GlassNavigationBar(
                     )
                 }
         )
-
-        // === KONTEN: ikon di atas kaca (tidak kena blur) ===
         Row(
             modifier = Modifier
                 .matchParentSize()
@@ -133,8 +122,6 @@ fun GlassNavigationBar(
         }
     }
 }
-
-/** Badge kaca elips yang muncul di belakang ikon terpilih. */
 @Composable
 private fun SelectedGlassPill(
     modifier: Modifier = Modifier,

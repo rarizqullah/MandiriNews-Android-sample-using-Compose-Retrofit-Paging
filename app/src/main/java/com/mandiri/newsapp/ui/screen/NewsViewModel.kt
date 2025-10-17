@@ -18,8 +18,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 class NewsViewModel : ViewModel() {
 
     private val api = NetworkModule.api
-
-    // ========= Headlines by category =========
     private val _headlineCategory = MutableStateFlow<String?>(null)
     val headlineCategory: StateFlow<String?> = _headlineCategory.asStateFlow()
 
@@ -30,7 +28,6 @@ class NewsViewModel : ViewModel() {
             Pager(
                 config = PagingConfig(
                     pageSize = 10,
-                    // FIX: prefetchDistance harus > 0 ATAU enablePlaceholders = true
                     prefetchDistance = 2,
                     initialLoadSize = 10,
                     enablePlaceholders = false
@@ -41,8 +38,6 @@ class NewsViewModel : ViewModel() {
         .cachedIn(viewModelScope)
 
     fun setHeadlineCategory(category: String?) { _headlineCategory.value = category }
-
-    // ========= Everything by query =========
     private val _query = MutableStateFlow("indonesia")
     val everythingPager = _query
         .debounce(250)
@@ -51,7 +46,6 @@ class NewsViewModel : ViewModel() {
             Pager(
                 config = PagingConfig(
                     pageSize = 10,
-                    // FIX sama seperti di atas
                     prefetchDistance = 2,
                     initialLoadSize = 10,
                     enablePlaceholders = false

@@ -196,7 +196,6 @@ fun CarouselCardSkeleton() {
         shape = MaterialTheme.shapes.large
     ) { Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant)) }
 }
-
 @Composable
 private fun Dots(count: Int, current: Int) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {

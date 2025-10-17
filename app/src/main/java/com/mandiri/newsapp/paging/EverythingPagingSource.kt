@@ -26,7 +26,7 @@ class EverythingPagingSource(
             language = "id"
         )
         val data = (resp.articles ?: emptyList())
-            .filter { !it.url.isNullOrBlank() }   // hanya item yang bisa dibuka
+            .filter { !it.url.isNullOrBlank() }
         LoadResult.Page(
             data = data,
             prevKey = if (page == 1) null else page - 1,
