@@ -51,12 +51,9 @@ import kotlinx.coroutines.flow.Flow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 
-
 private enum class Edition { NASIONAL, INTERNATIONAL }
 
-
 private fun buildQuery(cat: String?, edition: Edition): String {
-
     val catQ = when (cat) {
         "business"    -> "(ekonomi OR bisnis OR finance OR business)"
         "technology"  -> "(teknologi OR technology OR tech)"
@@ -68,7 +65,6 @@ private fun buildQuery(cat: String?, edition: Edition): String {
         Edition.INTERNATIONAL -> catQ
     }
 }
-
 
 private fun fallbackQuery(cat: String?, edition: Edition): String {
     val catQ = when (cat) {
@@ -82,7 +78,6 @@ private fun fallbackQuery(cat: String?, edition: Edition): String {
         Edition.INTERNATIONAL -> catQ
     }
 }
-
 
 private fun videoQuery(topic: String, edition: Edition): String {
     val base = when (topic) {
@@ -126,7 +121,8 @@ fun HomeScreen(
         val k = a.url ?: return
         if (savedMap.containsKey(k)) savedMap.remove(k) else savedMap[k] = a
     }
-    val savedList = remember(savedMap.keys) { savedMap.values.toList() }
+    val savedList by remember { derivedStateOf { savedMap.values.toList() } }
+
 
     var edition by remember { mutableStateOf(Edition.INTERNATIONAL) }
     val infoMode = when (themeMode) {
@@ -293,6 +289,7 @@ fun HomeScreen(
                 3 -> {
                     SettingsScreenCompact(
                         themeMode = themeMode,
+                        onThemeModeChange = onThemeModeChange,
                         infoMode = infoMode,
                         edition = edition,
                         onEditionChange = { edition = it },
@@ -308,7 +305,6 @@ fun HomeScreen(
                 }
             }
 
-            // Bottom glass nav
             GlassNavigationBar(
                 current = currentTab,
                 onChange = { currentTab = it },
@@ -741,6 +737,7 @@ private fun SavedScreen(
 @Composable
 private fun SettingsScreenCompact(
     themeMode: ThemeMode,
+    onThemeModeChange: (ThemeMode) -> Unit,
     infoMode: String,
     edition: Edition,
     onEditionChange: (Edition) -> Unit,
@@ -759,6 +756,35 @@ private fun SettingsScreenCompact(
         SpacerDivider()
 
         SectionHeader(text = "APP PREFERENCES")
+
+        Text(
+            "Appearance",
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        )
+        SegmentedThreeOptions(
+            a = "System",
+            b = "Light",
+            c = "Dark",
+            selectedIndex = when (themeMode) {
+                ThemeMode.SYSTEM -> 0
+                ThemeMode.LIGHT -> 1
+                ThemeMode.DARK -> 2
+            },
+            onSelect = {
+                when (it) {
+                    0 -> onThemeModeChange(ThemeMode.SYSTEM)
+                    1 -> onThemeModeChange(ThemeMode.LIGHT)
+                    else -> onThemeModeChange(ThemeMode.DARK)
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(10.dp))
+
         Text("Editions", style = MaterialTheme.typography.bodySmall, modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp))
@@ -906,5 +932,58 @@ private fun SegmentedTwoOptions(
         }
     }
 }
+
+@Composable
+private fun SegmentedThreeOptions(
+    a: String,
+    b: String,
+    c: String,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val shape = RoundedCornerShape(12.dp)
+    val bg = MaterialTheme.colorScheme.surfaceVariant
+    Row(
+        modifier = modifier
+            .height(32.dp)
+            .clip(shape)
+            .background(bg),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        listOf(a, b, c).forEachIndexed { idx, label ->
+            val segShape =
+                when (idx) {
+                    0 -> RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp)
+                    2 -> RoundedCornerShape(topEnd = 12.dp, bottomEnd = 12.dp)
+                    else -> RoundedCornerShape(0.dp)
+                }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(segShape)
+                    .background(if (selectedIndex == idx) MaterialTheme.colorScheme.surface else Color.Transparent)
+                    .clickable { onSelect(idx) },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (selectedIndex == idx) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (idx < 2) {
+                Box(
+                    modifier = Modifier
+                        .width(1.dp)
+                        .fillMaxHeight()
+                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+                )
+            }
+        }
+    }
+}
+
 private fun formatRelativeOrEmpty(iso: String?): String =
     runCatching { iso?.take(10).orEmpty() }.getOrDefault("")
