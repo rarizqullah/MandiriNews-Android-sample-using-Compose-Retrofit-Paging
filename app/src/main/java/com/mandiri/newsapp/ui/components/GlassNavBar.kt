@@ -22,10 +22,14 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.material.icons.outlined.PlayCircleOutline
+
+
+
 
 @Composable
 fun GlassNavigationBar(
@@ -36,9 +40,12 @@ fun GlassNavigationBar(
 ) {
     val items = listOf(
         Icons.Outlined.Home to "Home",
+        Icons.Outlined.PlayCircleOutline to "Watch",
         Icons.Outlined.BookmarkBorder to "Saved",
         Icons.Outlined.Settings to "Settings"
     )
+
+
     val shape = RoundedCornerShape(22.dp)
 
     Box(
@@ -122,34 +129,25 @@ fun GlassNavigationBar(
         }
     }
 }
+
 @Composable
 private fun SelectedGlassPill(
     modifier: Modifier = Modifier,
-    accent: Color = Color(0xFFFFC400)
+    accent: Color = MaterialTheme.colorScheme.primary
 ) {
+    val surfaceLum = MaterialTheme.colorScheme.surface.luminance()
+    val isDark = surfaceLum < 0.5f
+
+    val fillAlpha   = if (isDark) 0.14f else 0.18f
+    val borderAlpha = if (isDark) 0.30f else 0.45f
     val shape = RoundedCornerShape(16.dp)
+
     Box(
         modifier = modifier
             .clip(shape)
-            .background(accent.copy(alpha = 0.18f))
-            .border(1.dp, accent.copy(alpha = 0.45f), shape)
-            .drawBehind {
-                // sedikit highlight diagonal
-                val w = size.width
-                val h = size.height
-                val band = w * 0.38f
-                translate(left = w * 0.15f, top = 0f) {
-                    drawRect(
-                        brush = Brush.linearGradient(
-                            listOf(
-                                accent.copy(alpha = 0f),
-                                Color.White.copy(alpha = 0.60f),
-                                accent.copy(alpha = 0f)
-                            )
-                        ),
-                        size = androidx.compose.ui.geometry.Size(band, h)
-                    )
-                }
-            }
+            .background(accent.copy(alpha = fillAlpha))
+            .border(1.dp, accent.copy(alpha = borderAlpha), shape)
+
     )
 }
+

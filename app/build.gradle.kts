@@ -18,7 +18,7 @@ android {
         versionName = "1.0"
         vectorDrawables { useSupportLibrary = true }
 
-        // inject API key dari local.properties
+
         val newsKey = gradleLocalProperties(rootDir, providers)
             .getProperty("NEWS_API_KEY") ?: ""
         buildConfigField("String", "NEWS_API_KEY", "\"$newsKey\"")
@@ -31,7 +31,7 @@ android {
 
     buildFeatures {
         compose = true
-        buildConfig = true   // ⬅️ WAJIB: aktifkan fitur BuildConfig
+        buildConfig = true
     }
 }
 

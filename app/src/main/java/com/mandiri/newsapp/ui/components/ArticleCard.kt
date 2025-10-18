@@ -35,7 +35,6 @@ fun ArticleCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(Modifier.fillMaxWidth()) {
-            // Gambar 16:9
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -48,7 +47,6 @@ fun ArticleCard(
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
-                // Gradient untuk judul
                 Box(
                     modifier = Modifier
                         .matchParentSize()
@@ -69,8 +67,6 @@ fun ArticleCard(
                         .padding(12.dp)
                 )
             }
-
-
             Column(Modifier.padding(12.dp)) {
                 val desc = article.description
                 if (!desc.isNullOrBlank()) {

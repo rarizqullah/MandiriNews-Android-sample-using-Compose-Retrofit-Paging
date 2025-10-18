@@ -1,9 +1,16 @@
 package com.mandiri.newsapp.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,7 +32,9 @@ import java.util.Locale
 fun ArticleListItem(
     article: Article,
     onClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isBookmarked: Boolean = false,
+    onToggleBookmark: (Article) -> Unit = {}
 ) {
     val link = article.url
     Column(
@@ -35,15 +44,37 @@ fun ArticleListItem(
             .padding(vertical = 10.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // Thumbnail 16:9
-            AsyncImage(
-                model = article.urlToImage,
-                contentDescription = null,
+            Box(
                 modifier = Modifier
                     .size(width = 120.dp, height = 84.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
+                    .clip(RoundedCornerShape(12.dp))
+            ) {
+                AsyncImage(
+                    model = article.urlToImage,
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop
+                )
+
+                IconButton(
+                    onClick = { onToggleBookmark(article) },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .size(18.dp)
+                ) {
+                    val accent = MaterialTheme.colorScheme.primary
+
+                    Icon(
+                        imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                        contentDescription = "Bookmark",
+                        modifier = Modifier.size(18.dp),
+                        tint = if (isBookmarked) accent else accent.copy(alpha = 0.75f)
+                    )
+
+                }
+
+            }
 
             Spacer(Modifier.width(12.dp))
 
@@ -66,8 +97,6 @@ fun ArticleListItem(
                 }
 
                 Spacer(Modifier.height(6.dp))
-
-                // Sumber (kiri) • Tanggal terbit (kanan)
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = article.source?.name.orEmpty(),
