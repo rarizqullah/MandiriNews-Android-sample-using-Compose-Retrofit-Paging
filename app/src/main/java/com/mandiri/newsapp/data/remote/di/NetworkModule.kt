@@ -34,7 +34,6 @@ object NetworkModule {
                     val retryAfterSec = resp.header("Retry-After")?.toLongOrNull() ?: 2L
                     resp.close()
                     Thread.sleep(retryAfterSec * 1000)
-                    // Pastikan tetap hormati jeda
                     val elapsed2 = SystemClock.elapsedRealtime() - lastCallAtMs
                     val wait2 = 1200L - elapsed2
                     if (wait2 > 0) Thread.sleep(wait2)

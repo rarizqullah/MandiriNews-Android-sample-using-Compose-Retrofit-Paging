@@ -12,12 +12,15 @@ interface NewsApi {
         @Query("page") page: Int,
         @Query("pageSize") pageSize: Int = 20
     ): NewsResponse
+
     @GET("v2/everything")
     suspend fun everything(
         @Query("q") query: String,
         @Query("sortBy") sortBy: String = "publishedAt",
+        @Query("from") from: String? = null,
+        @Query("to") to: String? = null,
         @Query("page") page: Int,
         @Query("pageSize") pageSize: Int = 20,
-        @Query("language") language: String? = null,
+        @Query("language") language: String? = null
     ): NewsResponse
 }

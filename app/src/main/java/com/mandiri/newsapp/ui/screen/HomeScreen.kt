@@ -48,33 +48,40 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 private enum class Edition { NASIONAL, INTERNATIONAL }
 
+private fun todayWindow(daysBack: Long = 2): Pair<String, String> {
+    val fmt = DateTimeFormatter.ISO_LOCAL_DATE
+    val to = LocalDate.now()
+    val from = to.minusDays(daysBack)
+    return from.format(fmt) to to.format(fmt)
+}
+
 private fun buildQuery(cat: String?, edition: Edition): String {
     val catQ = when (cat) {
-        "business"    -> "(ekonomi OR bisnis OR finance OR business)"
-        "technology"  -> "(teknologi OR technology OR tech)"
-        "science"     -> "(sains OR science OR riset OR research)"
-        else          -> "(ekonomi OR bisnis OR technology OR tech OR sains OR science)"
+        "business" -> "(ekonomi OR bisnis OR finance OR business)"
+        "technology" -> "(teknologi OR technology OR tech)"
+        "science" -> "(sains OR science OR riset OR research)"
+        else -> "(ekonomi OR bisnis OR technology OR tech OR sains OR science)"
     }
     return when (edition) {
-        Edition.NASIONAL      -> "$catQ AND indonesia"
+        Edition.NASIONAL -> "$catQ AND indonesia"
         Edition.INTERNATIONAL -> catQ
     }
 }
 
 private fun fallbackQuery(cat: String?, edition: Edition): String {
     val catQ = when (cat) {
-        "business"    -> "(business OR economy)"
-        "technology"  -> "(technology OR tech)"
-        "science"     -> "(science OR research)"
-        else          -> "(business OR technology OR science)"
+        "business" -> "(business OR economy)"
+        "technology" -> "(technology OR tech)"
+        "science" -> "(science OR research)"
+        else -> "(business OR technology OR science)"
     }
     return when (edition) {
-        Edition.NASIONAL      -> "$catQ AND indonesia"
+        Edition.NASIONAL -> "$catQ AND indonesia"
         Edition.INTERNATIONAL -> catQ
     }
 }
@@ -82,19 +89,23 @@ private fun fallbackQuery(cat: String?, edition: Edition): String {
 private fun videoQuery(topic: String, edition: Edition): String {
     val base = when (topic) {
         "politics" -> "(politik OR politics)"
-        "world"    -> "(world OR international)"
-        else       -> "(business OR economy)"
+        "world" -> "(world OR international)"
+        else -> "(business OR economy)"
     }
     val videoHints = "(video OR clip OR interview)"
     val scope = if (edition == Edition.NASIONAL) " AND indonesia" else ""
     return "$base AND $videoHints$scope"
 }
 
-private fun watchPagerFlow(query: String): Flow<androidx.paging.PagingData<Article>> {
+private fun watchPagerFlow(
+    query: String,
+    from: String?,
+    to: String?
+): Flow<androidx.paging.PagingData<Article>> {
     val api = NetworkModule.api
     return Pager(
         config = PagingConfig(pageSize = 10, prefetchDistance = 2, initialLoadSize = 10, enablePlaceholders = false),
-        pagingSourceFactory = { EverythingPagingSource(api, query) }
+        pagingSourceFactory = { EverythingPagingSource(api, query, from, to, "id") }
     ).flow
 }
 
@@ -107,6 +118,7 @@ fun HomeScreen(
 ) {
     val ctx = LocalContext.current
     var currentTab by remember { mutableStateOf(0) }
+    val (fromToday, toToday) = remember { todayWindow(2) }
 
     val categories = listOf(
         null to "All news",
@@ -123,7 +135,6 @@ fun HomeScreen(
     }
     val savedList by remember { derivedStateOf { savedMap.values.toList() } }
 
-
     var edition by remember { mutableStateOf(Edition.INTERNATIONAL) }
     val infoMode = when (themeMode) {
         ThemeMode.DARK -> "dark"
@@ -138,9 +149,12 @@ fun HomeScreen(
     LaunchedEffect(Unit) {
         vm.setHeadlineCategory(null)
         vm.setQuery(buildQuery(null, edition))
+        vm.setDateWindow(fromToday, toToday)
+        vm.setLanguage("id")
     }
-    LaunchedEffect(edition, selectedCategory) {
+    LaunchedEffect(edition, selectedCategory, fromToday, toToday) {
         vm.setQuery(buildQuery(selectedCategory, edition))
+        vm.setDateWindow(fromToday, toToday)
     }
     var triedFallback by remember { mutableStateOf(false) }
     LaunchedEffect(everything.loadState.refresh, everything.itemCount, edition, selectedCategory) {
@@ -225,8 +239,7 @@ fun HomeScreen(
                             ArticleListItem(
                                 article = a,
                                 onClick = { url ->
-                                    ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                                },
+                                    ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) },
                                 modifier = Modifier.fillMaxWidth(),
                                 isBookmarked = isBookmarked(a.url),
                                 onToggleBookmark = { toggleBookmark(it) }
@@ -236,7 +249,6 @@ fun HomeScreen(
                             when {
                                 everything.loadState.append is LoadState.Loading ->
                                     LinearProgressIndicator(Modifier.fillMaxWidth())
-
                                 everything.loadState.append is LoadState.Error -> {
                                     val err = everything.loadState.append as LoadState.Error
                                     Column {
@@ -251,16 +263,16 @@ fun HomeScreen(
                 }
 
                 1 -> {
-                    val politicsWatch = remember(edition) {
-                        watchPagerFlow(videoQuery("politics", edition))
+                    val politicsWatch = remember(edition, fromToday, toToday) {
+                        watchPagerFlow(videoQuery("politics", edition), fromToday, toToday)
                     }.collectAsLazyPagingItems()
 
-                    val worldWatch = remember(edition) {
-                        watchPagerFlow(videoQuery("world", edition))
+                    val worldWatch = remember(edition, fromToday, toToday) {
+                        watchPagerFlow(videoQuery("world", edition), fromToday, toToday)
                     }.collectAsLazyPagingItems()
 
-                    val businessWatch = remember(edition) {
-                        watchPagerFlow(videoQuery("business", edition))
+                    val businessWatch = remember(edition, fromToday, toToday) {
+                        watchPagerFlow(videoQuery("business", edition), fromToday, toToday)
                     }.collectAsLazyPagingItems()
 
                     WatchScreen(

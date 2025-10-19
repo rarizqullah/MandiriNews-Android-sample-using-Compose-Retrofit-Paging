@@ -7,7 +7,10 @@ import com.mandiri.newsapp.data.remote.model.Article
 
 class EverythingPagingSource(
     private val api: NewsApi,
-    private val query: String
+    private val query: String,
+    private val from: String? = null,
+    private val to: String? = null,
+    private val language: String? = null
 ) : PagingSource<Int, Article>() {
 
     override fun getRefreshKey(state: PagingState<Int, Article>): Int? =
@@ -21,12 +24,13 @@ class EverythingPagingSource(
         val resp = api.everything(
             query = query,
             sortBy = "publishedAt",
+            from = from,
+            to = to,
             page = page,
             pageSize = params.loadSize.coerceAtMost(20),
-            language = "id"
+            language = language
         )
-        val data = (resp.articles ?: emptyList())
-            .filter { !it.url.isNullOrBlank() }
+        val data = (resp.articles ?: emptyList()).filter { !it.url.isNullOrBlank() }
         LoadResult.Page(
             data = data,
             prevKey = if (page == 1) null else page - 1,

@@ -23,20 +23,16 @@ import kotlinx.coroutines.flow.update
 class NewsViewModel : ViewModel() {
 
     private val api = NetworkModule.api
+
     private val _headlineCategory = MutableStateFlow<String?>(null)
     val headlineCategory: StateFlow<String?> = _headlineCategory.asStateFlow()
 
-    val headlinePager = headlineCategory
+    val headlinePager = _headlineCategory
         .debounce(150)
         .distinctUntilChanged()
         .flatMapLatest { cat ->
             Pager(
-                config = PagingConfig(
-                    pageSize = 10,
-                    prefetchDistance = 2,
-                    initialLoadSize = 10,
-                    enablePlaceholders = false
-                ),
+                config = PagingConfig(pageSize = 10, prefetchDistance = 2, initialLoadSize = 10, enablePlaceholders = false),
                 pagingSourceFactory = { HeadlinesPagingSource(api, cat) }
             ).flow
         }
@@ -45,27 +41,30 @@ class NewsViewModel : ViewModel() {
     fun setHeadlineCategory(category: String?) { _headlineCategory.value = category }
 
     private val _query = MutableStateFlow("indonesia")
-    val everythingPager = _query
+    private val _from = MutableStateFlow<String?>(null)
+    private val _to = MutableStateFlow<String?>(null)
+    private val _language = MutableStateFlow<String?>("id")
+
+    val everythingPager = MutableStateFlow(Unit)
+        .flatMapLatest {
+            _query.combine3(_from, _to) { q, f, t -> Triple(q, f, t) }
+        }
         .debounce(250)
         .distinctUntilChanged()
-        .flatMapLatest { q ->
+        .flatMapLatest { triple ->
+            val (q, f, t) = triple
             Pager(
-                config = PagingConfig(
-                    pageSize = 10,
-                    prefetchDistance = 2,
-                    initialLoadSize = 10,
-                    enablePlaceholders = false
-                ),
-                pagingSourceFactory = { EverythingPagingSource(api, q) }
+                config = PagingConfig(pageSize = 10, prefetchDistance = 2, initialLoadSize = 10, enablePlaceholders = false),
+                pagingSourceFactory = { EverythingPagingSource(api, q, f, t, _language.value) }
             ).flow
         }
         .cachedIn(viewModelScope)
 
     fun setQuery(q: String) { _query.value = q }
-
+    fun setDateWindow(from: String?, to: String?) { _from.value = from; _to.value = to }
+    fun setLanguage(lang: String?) { _language.value = lang }
 
     private val _bookmarks = MutableStateFlow<Map<String, Article>>(emptyMap())
-
 
     val bookmarks: StateFlow<List<Article>> =
         _bookmarks.map { it.values.toList() }
@@ -73,14 +72,10 @@ class NewsViewModel : ViewModel() {
 
     fun toggleBookmark(article: Article) {
         val key = article.url ?: return
-        _bookmarks.update { cur ->
-            if (cur.containsKey(key)) cur - key else cur + (key to article)
-        }
+        _bookmarks.update { cur -> if (cur.containsKey(key)) cur - key else cur + (key to article) }
     }
 
-    fun isBookmarked(url: String?): Boolean =
-        url != null && _bookmarks.value.containsKey(url)
-
+    fun isBookmarked(url: String?): Boolean = url != null && _bookmarks.value.containsKey(url)
 
     enum class Edition { US, INTERNATIONAL }
 
@@ -96,5 +91,10 @@ class NewsViewModel : ViewModel() {
     fun setEdition(e: Edition) { _edition.value = e }
     fun setCnnSoundEnabled(enabled: Boolean) { _cnnSoundEnabled.value = enabled }
     fun setAccountEmail(email: String?) { _accountEmail.value = email }
-
 }
+
+private fun <A, B, C, R> MutableStateFlow<A>.combine3(
+    other1: MutableStateFlow<B>,
+    other2: MutableStateFlow<C>,
+    transform: (A, B, C) -> R
+) = kotlinx.coroutines.flow.combine(this, other1, other2, transform)
