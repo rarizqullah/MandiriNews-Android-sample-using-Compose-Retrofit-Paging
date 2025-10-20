@@ -10,7 +10,8 @@ class EverythingPagingSource(
     private val query: String,
     private val from: String? = null,
     private val to: String? = null,
-    private val language: String? = null
+    private val language: String? = null,
+    private val searchIn: String? = "title,description,content"
 ) : PagingSource<Int, Article>() {
 
     override fun getRefreshKey(state: PagingState<Int, Article>): Int? =
@@ -28,6 +29,7 @@ class EverythingPagingSource(
             to = to,
             page = page,
             pageSize = params.loadSize.coerceAtMost(20),
+            searchIn = searchIn,
             language = language
         )
         val data = (resp.articles ?: emptyList()).filter { !it.url.isNullOrBlank() }

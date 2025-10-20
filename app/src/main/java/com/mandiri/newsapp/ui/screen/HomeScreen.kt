@@ -97,15 +97,12 @@ private fun videoQuery(topic: String, edition: Edition): String {
     return "$base AND $videoHints$scope"
 }
 
-private fun watchPagerFlow(
-    query: String,
-    from: String?,
-    to: String?
-): Flow<androidx.paging.PagingData<Article>> {
+private fun watchPagerFlow(query: String, daysBack: Long): Flow<androidx.paging.PagingData<Article>> {
+    val (from, to) = todayWindow(daysBack)
     val api = NetworkModule.api
     return Pager(
         config = PagingConfig(pageSize = 10, prefetchDistance = 2, initialLoadSize = 10, enablePlaceholders = false),
-        pagingSourceFactory = { EverythingPagingSource(api, query, from, to, "id") }
+        pagingSourceFactory = { EverythingPagingSource(api, query, from, to, null) }
     ).flow
 }
 
@@ -263,17 +260,40 @@ fun HomeScreen(
                 }
 
                 1 -> {
-                    val politicsWatch = remember(edition, fromToday, toToday) {
-                        watchPagerFlow(videoQuery("politics", edition), fromToday, toToday)
+                    var watchDays by remember { mutableStateOf(7L) }
+
+                    val politicsWatch = remember(edition, watchDays) {
+                        watchPagerFlow(videoQuery("politics", edition), watchDays)
                     }.collectAsLazyPagingItems()
 
-                    val worldWatch = remember(edition, fromToday, toToday) {
-                        watchPagerFlow(videoQuery("world", edition), fromToday, toToday)
+                    val worldWatch = remember(edition, watchDays) {
+                        watchPagerFlow(videoQuery("world", edition), watchDays)
                     }.collectAsLazyPagingItems()
 
-                    val businessWatch = remember(edition, fromToday, toToday) {
-                        watchPagerFlow(videoQuery("business", edition), fromToday, toToday)
+                    val businessWatch = remember(edition, watchDays) {
+                        watchPagerFlow(videoQuery("business", edition), watchDays)
                     }.collectAsLazyPagingItems()
+
+                    LaunchedEffect(
+                        politicsWatch.loadState.refresh,
+                        worldWatch.loadState.refresh,
+                        businessWatch.loadState.refresh,
+                        politicsWatch.itemCount,
+                        worldWatch.itemCount,
+                        businessWatch.itemCount
+                    ) {
+                        val allNotLoading =
+                            politicsWatch.loadState.refresh is LoadState.NotLoading &&
+                                    worldWatch.loadState.refresh is LoadState.NotLoading &&
+                                    businessWatch.loadState.refresh is LoadState.NotLoading
+                        val allEmpty =
+                            politicsWatch.itemCount == 0 &&
+                                    worldWatch.itemCount == 0 &&
+                                    businessWatch.itemCount == 0
+                        if (allNotLoading && allEmpty && watchDays < 14L) {
+                            watchDays = 14L
+                        }
+                    }
 
                     WatchScreen(
                         politics = politicsWatch,

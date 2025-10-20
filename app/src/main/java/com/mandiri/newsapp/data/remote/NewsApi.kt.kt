@@ -21,6 +21,7 @@ interface NewsApi {
         @Query("to") to: String? = null,
         @Query("page") page: Int,
         @Query("pageSize") pageSize: Int = 20,
+        @Query("searchIn") searchIn: String? = "title,description,content",
         @Query("language") language: String? = null
     ): NewsResponse
 }
