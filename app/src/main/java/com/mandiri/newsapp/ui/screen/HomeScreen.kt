@@ -48,16 +48,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.Flow
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 private enum class Edition { NASIONAL, INTERNATIONAL }
 
-private fun todayWindow(daysBack: Long = 2): Pair<String, String> {
-    val fmt = DateTimeFormatter.ISO_LOCAL_DATE
-    val to = LocalDate.now()
-    val from = to.minusDays(daysBack)
-    return from.format(fmt) to to.format(fmt)
+private fun todayWindow(daysBack: Int = 2): Pair<String, String> {
+    val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    val to = Calendar.getInstance()
+    val from = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -daysBack) }
+    return fmt.format(from.time) to fmt.format(to.time)
 }
 
 private fun buildQuery(cat: String?, edition: Edition): String {
@@ -97,7 +98,7 @@ private fun videoQuery(topic: String, edition: Edition): String {
     return "$base AND $videoHints$scope"
 }
 
-private fun watchPagerFlow(query: String, daysBack: Long): Flow<androidx.paging.PagingData<Article>> {
+private fun watchPagerFlow(query: String, daysBack: Int): Flow<androidx.paging.PagingData<Article>> {
     val (from, to) = todayWindow(daysBack)
     val api = NetworkModule.api
     return Pager(
@@ -208,8 +209,7 @@ fun HomeScreen(
                                 headlines = headlines,
                                 everything = everything,
                                 onOpen = { url ->
-                                    ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-                                }
+                                    ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
                             )
                         }
                         item {
@@ -260,7 +260,7 @@ fun HomeScreen(
                 }
 
                 1 -> {
-                    var watchDays by remember { mutableStateOf(7L) }
+                    var watchDays by remember { mutableStateOf(7) }
 
                     val politicsWatch = remember(edition, watchDays) {
                         watchPagerFlow(videoQuery("politics", edition), watchDays)
@@ -290,8 +290,8 @@ fun HomeScreen(
                             politicsWatch.itemCount == 0 &&
                                     worldWatch.itemCount == 0 &&
                                     businessWatch.itemCount == 0
-                        if (allNotLoading && allEmpty && watchDays < 14L) {
-                            watchDays = 14L
+                        if (allNotLoading && allEmpty && watchDays < 14) {
+                            watchDays = 14
                         }
                     }
 
